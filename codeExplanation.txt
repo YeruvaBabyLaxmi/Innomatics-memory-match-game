@@ -1,0 +1,211 @@
+1. Categories and Image Paths:
+const categories = {
+    Fruits: ["images/apple.jpeg", "images/banana.jpeg", "images/watermelon.jpeg", "images/grapes.jpeg",
+        "images/strawberry.jpeg", "images/pineapple.jpeg", "images/mango.jpeg", "images/cherry.jpeg"],
+
+    Emojis: ["images/smile.jpg", "images/sleepy.jpeg", "images/thumb.jpeg", "images/eyes.jpeg",
+        "images/crysmile.jpg", "images/gestureemoji.jpeg", "images/angry.jpeg", "images/love.jpeg"],
+
+    Animals: ["images/bear.jpeg", "images/cat.jpeg", "images/dog.jpeg", "images/dog2.jpeg",
+        "images/duck.jpeg", "images/giraffie.jpeg", "images/lion.jpeg", "images/monkey.jpeg"],
+
+    Planets: ["images/sun.jpeg", "images/bluePlanet.jpeg", "images/earth.jpeg", "images/galaxy.jpeg",
+        "images/saturn.jpeg", "images/space.jpeg", "images/star.jpeg", "images/comet.jpeg"],
+
+    Flags: ["images/america.jpeg", "images/australia.jpeg", "images/brazilk.jpeg", "images/india.jpeg",
+        "images/korea.jpeg", "images/london.jpeg", "images/pakistan.jpeg", "images/vietnam.jpeg"]
+};
+
+The categories object contains five categories: Fruits, Emojis, Animals, Planets, and Flags.
+Each category holds an array of image paths representing the cards in the game.
+Every image will appear twice when the game starts.
+
+
+2. Declaring Global Variables:
+
+let currentCategory = "";
+let firstCard = null;
+let secondCard = null;
+let moves = 0;
+let score = 0;
+let timer = 30;
+let interval;
+let isPaused = false;
+
+currentCategory: Stores the selected category.
+firstCard, secondCard: Track the two flipped cards.
+moves: Counts the number of moves made by the player.
+score: Increases by 10 points per matched pair.
+timer: 30-second countdown before the game ends.
+interval: Stores the setInterval reference for updating the timer.
+isPaused: A flag to check if the game is paused
+
+
+3. Selecting DOM Elements:
+
+const landingPage = document.getElementById("landing-page");
+const gamePage = document.getElementById("game-page");
+const gameBoard = document.getElementById("game-board");
+const movesDisplay = document.getElementById("moves");
+const timeDisplay = document.getElementById("time");
+const scoreDisplay = document.getElementById("score");
+const pauseButton = document.getElementById("pause-game");
+const resumeButton = document.getElementById("resume-game");
+const restartButton = document.getElementById("restart-game");
+const homeButton = document.getElementById("home");
+const categoryButtons = document.querySelectorAll(".category-btn");
+
+Retrieves HTML elements to update and manipulate during the game.
+landingPage, gamePage: Used to switch between the landing page and game screen.
+gameBoard: The main container where cards are dynamically generated.
+movesDisplay, timeDisplay, scoreDisplay: Display live game stats.
+Buttons (pauseButton, resumeButton, restartButton, homeButton): Handle game controls.
+
+
+
+Sound Effects for Better UX:
+
+const clickSound = new Audio("sounds/click.mp3");
+const flipSound = new Audio("sounds/flip.mp3");
+const matchSound = new Audio("sounds/match.mp3");
+const popupSound = new Audio("sounds/popup.mp3");
+
+function playSound(sound) {
+    sound.pause();
+    sound.currentTime = 0;
+    sound.play();
+}
+
+Loads sound effects for clicks, flips, matches, and popups.
+playSound(sound): Plays the provided sound after resetting it.
+
+
+
+5. Adding Click Sound to Buttons:
+
+const buttonsWithSound = [pauseButton, resumeButton, restartButton, homeButton];
+categoryButtons.forEach(button => buttonsWithSound.push(button));
+
+buttonsWithSound.forEach(button => {
+    button.addEventListener("click", () => playSound(clickSound));
+});
+
+Adds click sound effects to all buttons for better user experience.
+
+
+
+6. Shuffle Function:
+
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+Uses sort() with a random comparator to shuffle the array, ensuring a randomized card layout every game.
+
+
+
+7. Start Game Function:
+
+function startGame(category) {
+    currentCategory = category;
+    landingPage.style.display = "none";
+    gamePage.style.display = "block";
+    gameBoard.innerHTML = "";
+
+    moves = 0;
+    score = 0;
+    timer = 30;
+    isPaused = false;
+
+    movesDisplay.innerText = moves;
+    scoreDisplay.innerText = score;
+    timeDisplay.innerText = timer;
+
+    const selectedCategory = shuffle([...categories[category], ...categories[category]]);
+    
+    selectedCategory.forEach(imagePath => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.value = imagePath;
+        card.innerHTML = `
+            <div class="front">❓</div>
+            <div class="back"><img src="${imagePath}" alt="Memory Image"></div>
+        `;
+        card.addEventListener("click", flipCard);
+        gameBoard.appendChild(card);
+    });
+
+    clearInterval(interval);
+    interval = setInterval(() => {
+        if (!isPaused) {
+            timer--;
+            timeDisplay.innerText = timer;
+            if (timer === 0) {
+                clearInterval(interval);
+                showGameOverPopup(score);
+            }
+        }
+    }, 1000);
+}
+
+Hides the landing page and displays the game board.
+Resets moves, score, and timer.
+Selects category images, duplicates them, and shuffles the set.
+Creates flippable cards dynamically.
+Starts a countdown timer (game ends at 0 seconds).
+
+
+
+8. Handling Card Flip:
+
+function flipCard() {
+    if (isPaused || this.classList.contains("flipped")) return;
+    playSound(flipSound);
+    this.classList.add("flipped");
+
+    if (!firstCard) {
+        firstCard = this;
+        return;
+    }
+
+    secondCard = this;
+    moves++;
+    movesDisplay.innerText = moves;
+    checkMatch();
+}
+
+Ensures the player doesn’t flip the same card twice.
+Stores the first and second selected cards.
+Increments move count.
+Calls checkMatch() to compare cards.
+
+
+
+9. Checking for a Match:
+
+function checkMatch() {
+    if (firstCard.dataset.value === secondCard.dataset.value) {
+        firstCard.removeEventListener("click", flipCard);
+        secondCard.removeEventListener("click", flipCard);
+        playSound(matchSound);
+        score += 10;
+        scoreDisplay.innerText = score;
+        resetSelection();
+
+        if (score === 80) {
+            clearInterval(interval);
+            setTimeout(() => showGameOverPopup(score), 500);
+        }
+    } else {
+        isPaused = true;
+        setTimeout(() => {
+            firstCard.classList.remove("flipped");
+            secondCard.classList.remove("flipped");
+            resetSelection();
+            isPaused = false;
+        }, 1000);
+    }
+}
+
+If matched: Cards stay flipped.
+If not matched: Cards flip back after 1s.
