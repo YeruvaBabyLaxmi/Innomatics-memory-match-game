@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/memoryIcon.jpeg">
+    <title>Memory Match Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="landing-page">
+        <h1>Memory Card Game</h1>
+        <p>Select a Category</p>
+        <div class="categories">
+            <button class="category-btn" data-category="Fruits">Fruits</button>
+            <button class="category-btn" data-category="Emojis">Emojis</button>
+            <button class="category-btn" data-category="Animals">Animals</button>
+            <button class="category-btn" data-category="Planets">Planets</button>
+            <button class="category-btn" data-category="Flags">Flags</button>
+        </div>
+    </div>
+
+    <div id="game-page" style="display: none;">
+        <div class="game-info">
+            <p>Moves: <span id="moves">0</span></p>
+            <p>Time: <span id="time">30</span>s</p>
+            <p>Score: <span id="score">0</span></p>
+        </div>
+        <div id="game-board"></div>
+        <div class="controls">
+            <button id="pause-game">Pause</button>
+            <button id="resume-game">Resume</button>
+            <button id="restart-game">Restart</button>
+            <button id="home">Home</button>
+        </div>
+    </div>
+    <div id="gameOverPopup" class="popup">
+        <div class="popup-content">
+            <h2>Game Over!</h2>
+            <p><span id="finalScore"></span></p>
+            <button id="popupRestart">Restart</button>
+            <button id="popupHome">Home</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
